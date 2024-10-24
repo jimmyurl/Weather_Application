@@ -1,21 +1,40 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template for deploying React Weather App to S3'
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: Name of the S3 bucket to create
+    Default: weather-app-frontend-bucket
+
 Resources:
-  ReactAppS3Bucket:
+  S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: react-weather-app-${AWS::AccountId}-${AWS::Region}
+      BucketName: !Ref BucketName
+      AccessControl: PublicRead
       WebsiteConfiguration:
         IndexDocument: index.html
-        ErrorDocument: error.html
-  S3BucketPolicy:
+        ErrorDocument: index.html
+      
+  BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref ReactAppS3Bucket
+      Bucket: !Ref S3Bucket
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
           - Sid: PublicReadGetObject
             Effect: Allow
-            Principal: "*"
-            Action: s3:GetObject
-            Resource: !Sub "${ReactAppS3Bucket.Arn}/*"
+            Principal: '*'
+            Action:
+              - s3:GetObject
+            Resource: !Join 
+              - ''
+              - - !GetAtt S3Bucket.Arn
+                - '/*'
+
+Outputs:
+  WebsiteURL:
+    Description: URL for website hosted on S3
+    Value: !GetAtt S3Bucket.WebsiteURL
