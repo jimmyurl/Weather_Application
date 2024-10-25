@@ -5,14 +5,18 @@ Parameters:
   BucketName:
     Type: String
     Description: Name of the S3 bucket to create
-    Default: weather-app-frontend-bucket
+    Default: weather-app-frontend-bucket-2024
 
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref BucketName
-      AccessControl: PublicRead
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: index.html
@@ -35,6 +39,23 @@ Resources:
                 - '/*'
 
 Outputs:
+  BucketName:
+    Description: Name of the S3 bucket
+    Value: !Ref S3Bucket
+    Export:
+      Name: !Sub ${AWS::StackName}-BucketName
+      
   WebsiteURL:
     Description: URL for website hosted on S3
     Value: !GetAtt S3Bucket.WebsiteURL
+    Export:
+      Name: !Sub ${AWS::StackName}-WebsiteURL
+      
+  S3BucketSecureURL:
+    Description: S3 bucket Secure URL
+    Value: !Join 
+      - ''
+      - - 'https://'
+        - !GetAtt S3Bucket.DomainName
+    Export:
+      Name: !Sub ${AWS::StackName}-S3BucketSecureURL
