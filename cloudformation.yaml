@@ -78,7 +78,7 @@ Resources:
             Value: !Ref S3Bucket
       Source:
         Type: GITHUB  # or your source type
-        Location: https://github.com/yourusername/your-repo-name  # Update this
+        Location:  https://github.com/jimmyurl/Weather_Application # Update this
         BuildSpec: buildspec.yml  # This specifies the correct location
       Cache:
         Type: NO_CACHE
