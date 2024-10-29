@@ -1,6 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'CloudFormation template for deploying React Weather App to S3'
-
 Parameters:
   BucketName:
     Type: String
@@ -38,6 +37,52 @@ Resources:
               - - !GetAtt S3Bucket.Arn
                 - '/*'
 
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Policies:
+        - PolicyName: CodeBuildServiceRolePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: weather-app-build
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: S3
+        Location: !Ref S3Bucket
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:4.0
+        EnvironmentVariables:
+          - Name: S3_BUCKET
+            Value: !Ref S3Bucket
+      Source:
+        Type: GITHUB  # or your source type
+        Location: https://github.com/yourusername/your-repo-name  # Update this
+        BuildSpec: buildspec.yml  # This specifies the correct location
+      Cache:
+        Type: NO_CACHE
+
 Outputs:
   BucketName:
     Description: Name of the S3 bucket
@@ -59,3 +104,9 @@ Outputs:
         - !GetAtt S3Bucket.DomainName
     Export:
       Name: !Sub ${AWS::StackName}-S3BucketSecureURL
+
+  CodeBuildProject:
+    Description: Name of the CodeBuild project
+    Value: !Ref CodeBuildProject
+    Export:
+      Name: !Sub ${AWS::StackName}-CodeBuildProject
