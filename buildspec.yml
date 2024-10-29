@@ -6,15 +6,16 @@ phases:
       nodejs: 18
     commands:
       - npm install
-  
+
   build:
     commands:
       - npm run build
-      - cp cloudformation.yaml build/
+
+  post_build:
+    commands:
+      - echo Build completed
 
 artifacts:
   files:
     - '**/*'
-    - cloudformation.yaml
   base-directory: build
-  discard-paths: no
